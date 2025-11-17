@@ -7,6 +7,9 @@ public class Order {
     private String status; // "Đã đặt (local)"
     // Constructor, getters, setters
 
+    public Order() {
+    }
+
 
     public Order(int id, String date, double totalPrice, String status) {
         this.id = id;

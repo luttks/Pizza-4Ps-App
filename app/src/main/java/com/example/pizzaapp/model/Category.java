@@ -6,6 +6,8 @@ public class Category {
     private String image; // Tên resource ảnh, vd: "cat_pizza"
     // Constructor, getters, setters
 
+    public Category() {
+    }
 
     public Category(int id, String name, String image) {
         this.id = id;

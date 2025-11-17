@@ -9,6 +9,9 @@ public class Food {
     private int categoryId; // Foreign key
     // Constructor, getters, setters
 
+    public Food() {
+    }
+
 
     public Food(int categoryId, String image, double price, String description, String name, int id) {
         this.categoryId = categoryId;

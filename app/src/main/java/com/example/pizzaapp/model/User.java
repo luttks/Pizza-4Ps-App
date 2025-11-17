@@ -9,6 +9,9 @@ public class User {
     // Constructor, getters, setters
 
 
+    public User() {
+    }
+
     public User(int id, String email, String password, String address, String phone) {
         this.id = id;
         this.email = email;

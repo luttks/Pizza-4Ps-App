@@ -10,6 +10,9 @@ public class Cart {
     // Constructor, getters, setters
 
 
+    public Cart() {
+    }
+
     public Cart(int id, String foodName, double price, int quantity, String image, String customization) {
         this.id = id;
         this.foodName = foodName;
