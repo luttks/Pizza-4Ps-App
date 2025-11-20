@@ -1,4 +1,4 @@
-package com.example.pizzaapp.database;
+package com.example.pizzaapp.helper;
 
 import android.content.ContentValues;
 import android.content.Context;

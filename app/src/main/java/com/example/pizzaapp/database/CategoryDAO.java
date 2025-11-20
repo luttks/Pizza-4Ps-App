@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.example.pizzaapp.helper.PizzaAppDbHelper;
 import com.example.pizzaapp.model.Category;
 
 import java.util.ArrayList;
