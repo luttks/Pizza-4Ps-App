@@ -1,6 +1,6 @@
 package com.example.pizzaapp.fragment;
 
-// package com.example.pizzaapp.fragment;
+
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,6 +23,8 @@ import com.example.pizzaapp.database.CategoryDAO;
 import com.example.pizzaapp.database.FoodDAO;
 import com.example.pizzaapp.model.Category;
 import com.example.pizzaapp.model.Food;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.pizzaapp.activity.CartActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +40,7 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
 
     private List<Category> categoryList;
     private List<Food> foodList;
+    private FloatingActionButton fabCart;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -64,6 +67,15 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
 
         // Khởi tạo danh sách
         foodList = new ArrayList<>();
+
+        // Ánh xạ nút FAB
+        fabCart = view.findViewById(R.id.fab_cart);
+
+        // Xử lý sự kiện bấm nút Giỏ hàng
+        fabCart.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), CartActivity.class);
+            startActivity(intent);
+        });
 
         // Setup RecyclerViews
         setupCategoryRecyclerView();

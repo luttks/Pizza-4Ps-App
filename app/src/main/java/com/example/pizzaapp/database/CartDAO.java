@@ -8,6 +8,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.example.pizzaapp.helper.PizzaAppDbHelper;
 import com.example.pizzaapp.model.Cart; // Import model Cart của bạn
 
 import java.util.ArrayList;
