@@ -3,6 +3,7 @@ package com.example.pizzaapp.activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +27,11 @@ public class FoodDetailActivity extends AppCompatActivity {
     private TextView tvFoodDetailName, tvFoodDetailPrice, tvFoodDetailDescription, tvQuantity;
     private Button btnMinusQuantity, btnPlusQuantity, btnAddToCart;
     private CollapsingToolbarLayout collapsingToolbar;
+
+    // Khai báo các Widget
+    private Button btnFull, btnHalf, btnAddCart;
+    private ImageButton btnBack, btnCart;
+    private TextView txtTitle;
 
     private FoodDAO foodDAO;
     private CartDAO cartDAO;
@@ -78,6 +84,13 @@ public class FoodDetailActivity extends AppCompatActivity {
         btnPlusQuantity = findViewById(R.id.btn_plus_quantity);
         btnAddToCart = findViewById(R.id.btn_add_to_cart);
         collapsingToolbar = findViewById(R.id.collapsing_toolbar);
+
+        // Ánh xạ thêm các Widget mới
+        btnFull = findViewById(R.id.btnFull);
+        btnHalf = findViewById(R.id.btnHalf);
+        btnAddCart = findViewById(R.id.btnAddCart);
+        btnBack = findViewById(R.id.btnBack);
+        txtTitle = findViewById(R.id.txtTitle);
     }
 
     private void loadFoodDetails() {
@@ -124,6 +137,23 @@ public class FoodDetailActivity extends AppCompatActivity {
         // Nút Thêm vào giỏ
         btnAddToCart.setOnClickListener(v -> {
             addItemToCart();
+        });
+
+        // Xử lý sự kiện Click cho nút "Add to cart" (nút mới)
+        btnAddCart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Hiển thị thông báo Toast (Logic cơ bản)
+                Toast.makeText(FoodDetailActivity.this, "Đã thêm vào giỏ hàng!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Xử lý sự kiện nút Back
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish(); // Đóng Activity
+            }
         });
     }
 
