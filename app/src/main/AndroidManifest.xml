@@ -11,15 +11,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PizzaApp">
+
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".activity.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".activity.MainActivity"
+            android:exported="false" />
+
+        <activity android:name=".activity.RegisterActivity" />
 
         <activity
             android:name=".activity.FoodDetailActivity"
@@ -29,6 +35,7 @@
             android:name=".activity.CartActivity"
             android:parentActivityName=".activity.MainActivity"
             android:label="Your Cart" />
+
     </application>
 
 </manifest>

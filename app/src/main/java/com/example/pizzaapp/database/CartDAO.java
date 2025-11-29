@@ -1,6 +1,5 @@
 package com.example.pizzaapp.database;
 
-// package com.example.pizzaapp.database;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -9,7 +8,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.example.pizzaapp.helper.PizzaAppDbHelper;
-import com.example.pizzaapp.model.Cart; // Import model Cart của bạn
+import com.example.pizzaapp.model.Cart;
+import com.example.pizzaapp.model.Order;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -109,4 +109,6 @@ public class CartDAO {
         cursor.close();
         return list;
     }
+
+
 }

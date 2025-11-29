@@ -15,6 +15,7 @@ import com.example.pizzaapp.R;
 import com.example.pizzaapp.adapter.CartAdapter;
 import com.example.pizzaapp.database.CartDAO;
 import com.example.pizzaapp.database.OrderDAO;
+import com.example.pizzaapp.helper.UserSession;
 import com.example.pizzaapp.model.Cart;
 
 import java.text.NumberFormat;
@@ -108,8 +109,13 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private void handleCheckout() {
         if (cartList.isEmpty()) return;
 
-        // Giả sử userId = 1 (người dùng demo)
-        int userId = 1;
+
+        // 1. Khởi tạo session
+        UserSession session = new UserSession(this);
+        // 2. Lấy ID của người dùng đang đăng nhập
+        int userId = session.getUser().getId();
+        // ------------------------
+
         double total = 0;
         for (Cart item : cartList) {
             total += item.getPrice() * item.getQuantity();
