@@ -59,6 +59,7 @@ public class OrderDAO {
             db.endTransaction(); // Kết thúc giao dịch
         }
     }
+
     public List<Order> getOrdersByUserId(int userId) {
         List<Order> list = new ArrayList<>();
 
@@ -83,5 +84,49 @@ public class OrderDAO {
         }
         cursor.close();
         return list;
+    }
+
+    public List<Cart> getOrderItems(int orderId) {
+        List<Cart> list = new ArrayList<>();
+        String sql = "SELECT * FROM " + PizzaAppDbHelper.TABLE_ORDER_ITEMS +
+                " WHERE " + PizzaAppDbHelper.KEY_ORDER_ID + " = ?";
+
+        Cursor cursor = db.rawQuery(sql, new String[]{String.valueOf(orderId)});
+        if (cursor.moveToFirst()) {
+            do {
+                Cart item = new Cart();
+                // Lưu ý: Đảm bảo model Cart của bạn có constructor hoặc setter
+                item.setId(cursor.getInt(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_FOOD_ID)));
+                item.setFoodName(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_FOOD_NAME)));
+                item.setQuantity(cursor.getInt(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_QUANTITY)));
+                item.setPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_PRICE)));
+                // Trong bảng OrderItems ta không lưu ảnh, bạn có thể join bảng Foods nếu muốn lấy ảnh,
+                // hoặc tạm thời để ảnh mặc định/rỗng.
+
+                list.add(item);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
+
+    public boolean deleteOrder(int orderId) {
+        try {
+            db.beginTransaction();
+            // Xóa các món trong đơn trước
+            db.delete(PizzaAppDbHelper.TABLE_ORDER_ITEMS,
+                    PizzaAppDbHelper.KEY_ORDER_ID + " = ?", new String[]{String.valueOf(orderId)});
+
+            // Xóa đơn hàng
+            int result = db.delete(PizzaAppDbHelper.TABLE_ORDERS,
+                    PizzaAppDbHelper.KEY_ID + " = ?", new String[]{String.valueOf(orderId)});
+
+            db.setTransactionSuccessful();
+            return result > 0;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            db.endTransaction();
+        }
     }
 }

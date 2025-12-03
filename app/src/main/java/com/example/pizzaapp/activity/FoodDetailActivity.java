@@ -37,6 +37,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_food_detail);
 
+
+
         // Khởi tạo DAO
         foodDAO = new FoodDAO(this);
         cartDAO = new CartDAO(this);
@@ -48,7 +50,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Hiển thị nút back
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Hiển thị mũi tên <
+            getSupportActionBar().setDisplayShowTitleEnabled(false); // Ẩn tiêu đề mặc định nếu muốn
         }
         toolbar.setNavigationOnClickListener(v -> finish()); // Đóng activity khi bấm back
 

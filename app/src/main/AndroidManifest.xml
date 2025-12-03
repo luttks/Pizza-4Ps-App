@@ -36,6 +36,13 @@
             android:parentActivityName=".activity.MainActivity"
             android:label="Your Cart" />
 
+        <activity
+            android:name=".activity.OrderDetailActivity"
+            android:parentActivityName=".activity.MainActivity"
+            android:label="Order Details" />
+
+        <service android:name=".service.MockOrderService" />
     </application>
+
 
 </manifest>
