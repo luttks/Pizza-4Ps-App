@@ -1,6 +1,5 @@
 package com.example.pizzaapp.activity;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -14,6 +13,13 @@ import com.example.pizzaapp.R;
 import com.example.pizzaapp.database.UserDAO;
 import com.example.pizzaapp.helper.UserSession;
 import com.example.pizzaapp.model.User;
+import com.example.pizzaapp.api.ApiService;
+import com.example.pizzaapp.api.RetrofitClient;
+
+// --- SỬA LỖI TẠI ĐÂY: Xóa android.telecom.Call, Thêm retrofit2.Call ---
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -27,7 +33,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Kiểm tra xem đã đăng nhập chưa, nếu rồi thì vào thẳng Main
         userSession = new UserSession(this);
         if (userSession.isLoggedIn()) {
             startActivity(new Intent(this, MainActivity.class));
@@ -55,21 +60,32 @@ public class LoginActivity extends AppCompatActivity {
         String email = etEmail.getText().toString().trim();
         String pass = etPassword.getText().toString().trim();
 
-        if (email.isEmpty() || pass.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        // 2. Gọi API Login cho user thường
+        User loginRequest = new User();
+        loginRequest.setEmail(email);
+        loginRequest.setPassword(pass);
 
-        User user = userDAO.checkUserLogin(email, pass);
-        if (user != null) {
-            // Đăng nhập thành công -> Lưu session
-            userSession.createLoginSession(user);
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.loginUser(loginRequest).enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    User user = response.body();
 
-            Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, MainActivity.class));
-            finish(); // Đóng LoginActivity
-        } else {
-            Toast.makeText(this, "Invalid Email or Password", Toast.LENGTH_SHORT).show();
-        }
+                    userSession.createLoginSession(user);
+
+                    Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Sai email hoặc mật khẩu!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Toast.makeText(LoginActivity.this, "Lỗi kết nối Server", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

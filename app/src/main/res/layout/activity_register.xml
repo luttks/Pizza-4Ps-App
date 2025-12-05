@@ -15,6 +15,14 @@
         android:layout_marginBottom="32dp"/>
 
     <EditText
+        android:id="@+id/et_reg_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Full Name"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
         android:id="@+id/et_reg_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

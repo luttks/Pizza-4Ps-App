@@ -28,6 +28,7 @@ public class UserDAO {
         values.put(PizzaAppDbHelper.KEY_PASSWORD, user.getPassword()); // Cần mã hóa ở đây
         values.put(PizzaAppDbHelper.KEY_ADDRESS, user.getAddress());
         values.put(PizzaAppDbHelper.KEY_PHONE, user.getPhone());
+        values.put(PizzaAppDbHelper.KEY_NAME, user.getName());
         return db.insert(PizzaAppDbHelper.TABLE_USERS, null, values);
     }
 
@@ -43,6 +44,7 @@ public class UserDAO {
             User user = new User();
             user.setId(cursor.getInt(cursor.getColumnIndex(PizzaAppDbHelper.KEY_ID)));
             user.setEmail(cursor.getString(cursor.getColumnIndex(PizzaAppDbHelper.KEY_EMAIL)));
+            user.setName(cursor.getString(cursor.getColumnIndex(PizzaAppDbHelper.KEY_NAME)));
             user.setAddress(cursor.getString(cursor.getColumnIndex(PizzaAppDbHelper.KEY_ADDRESS)));
             user.setPhone(cursor.getString(cursor.getColumnIndex(PizzaAppDbHelper.KEY_PHONE)));
             cursor.close();
@@ -60,25 +62,6 @@ public class UserDAO {
         return db.update(PizzaAppDbHelper.TABLE_USERS, values,
                 PizzaAppDbHelper.KEY_ID + " = ?",
                 new String[]{String.valueOf(user.getId())});
-    }
-
-    public List<User> getAllUsers() {
-        List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM " + PizzaAppDbHelper.TABLE_USERS;
-        Cursor cursor = db.rawQuery(sql, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                User user = new User();
-                user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ID)));
-                user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_EMAIL)));
-                user.setPhone(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_PHONE)));
-                user.setAddress(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ADDRESS)));
-                list.add(user);
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        return list;
     }
 
 
