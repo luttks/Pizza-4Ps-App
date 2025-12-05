@@ -19,6 +19,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 
+import com.bumptech.glide.Glide;
 public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.FoodViewHolder> {
 
     private Context context;
@@ -58,19 +59,26 @@ public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.FoodViewHolder
         holder.tvFoodName.setText(food.getName());
         holder.tvFoodDescription.setText(food.getDescription());
 
-        // Định dạng tiền tệ VND
+        // Format tiền
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         holder.tvFoodPrice.setText(formatter.format(food.getPrice()));
 
-        // Lấy ảnh từ drawable bằng tên
-        int imageId = context.getResources().getIdentifier(food.getImage(), "drawable", context.getPackageName());
-        if (imageId != 0) {
-            holder.ivFoodImage.setImageResource(imageId);
-        } else {
-            holder.ivFoodImage.setImageResource(R.drawable.ic_launcher_background); // Ảnh mặc định
+        // --- XỬ LÝ ẢNH TỪ SERVER (QUAN TRỌNG) ---
+        String imageUrl = food.getImage();
+
+        // Fix lỗi localhost trên Android Emulator
+        if (imageUrl.contains("localhost")) {
+            imageUrl = imageUrl.replace("localhost", "10.0.2.2");
         }
 
-        // Bắt sự kiện click
+        // Dùng Glide để tải ảnh từ URL vào ImageView
+        Glide.with(context)
+                .load(imageUrl)
+                .placeholder(R.drawable.ic_launcher_background) // Ảnh chờ khi đang tải
+                .error(R.drawable.ic_launcher_background) // Ảnh lỗi nếu không tải được
+                .into(holder.ivFoodImage);
+
+        // --- Xử lý sự kiện click ---
         holder.foodLayout.setOnClickListener(v -> {
             listener.onFoodClick(food);
         });

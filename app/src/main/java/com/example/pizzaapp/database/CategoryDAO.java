@@ -40,4 +40,34 @@ public class CategoryDAO {
         String sql = "SELECT * FROM " + PizzaAppDbHelper.TABLE_CATEGORIES;
         return get(sql);
     }
+
+    // 1. Lấy danh sách tên danh mục (cho Spinner)
+    public List<String> getCategoryNames() {
+        List<String> names = new ArrayList<>();
+        // Truy vấn cột 'name' từ bảng Categories
+        String sql = "SELECT " + PizzaAppDbHelper.KEY_NAME + " FROM " + PizzaAppDbHelper.TABLE_CATEGORIES;
+        Cursor cursor = db.rawQuery(sql, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                names.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return names;
+    }
+
+    // 2. Lấy ID danh mục dựa trên tên (khi lưu món ăn)
+    public int getCategoryIdByName(String name) {
+        int id = -1;
+        String sql = "SELECT " + PizzaAppDbHelper.KEY_ID + " FROM " + PizzaAppDbHelper.TABLE_CATEGORIES +
+                " WHERE " + PizzaAppDbHelper.KEY_NAME + " = ?";
+        Cursor cursor = db.rawQuery(sql, new String[]{name});
+
+        if (cursor.moveToFirst()) {
+            id = cursor.getInt(0);
+        }
+        cursor.close();
+        return id;
+    }
 }

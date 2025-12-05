@@ -2,6 +2,7 @@ package com.example.pizzaapp.database;
 // package com.example.pizzaapp.database;
 
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -57,4 +58,17 @@ public class FoodDAO {
         List<Food> list = get(sql, String.valueOf(foodId));
         return list.isEmpty() ? null : list.get(0);
     }
+
+    public long insertFood(Food food) {
+        ContentValues values = new ContentValues();
+        values.put(PizzaAppDbHelper.KEY_NAME, food.getName());
+        values.put(PizzaAppDbHelper.KEY_DESCRIPTION, food.getDescription());
+        values.put(PizzaAppDbHelper.KEY_PRICE, food.getPrice());
+        values.put(PizzaAppDbHelper.KEY_IMAGE, food.getImage());
+        values.put(PizzaAppDbHelper.KEY_CATEGORY_ID, food.getCategoryId());
+
+        return db.insert(PizzaAppDbHelper.TABLE_FOODS, null, values);
+    }
+
+
 }

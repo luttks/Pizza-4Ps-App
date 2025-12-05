@@ -10,6 +10,9 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.pizzaapp.helper.PizzaAppDbHelper;
 import com.example.pizzaapp.model.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UserDAO {
     private SQLiteDatabase db;
 
@@ -58,4 +61,25 @@ public class UserDAO {
                 PizzaAppDbHelper.KEY_ID + " = ?",
                 new String[]{String.valueOf(user.getId())});
     }
+
+    public List<User> getAllUsers() {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM " + PizzaAppDbHelper.TABLE_USERS;
+        Cursor cursor = db.rawQuery(sql, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                User user = new User();
+                user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ID)));
+                user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_EMAIL)));
+                user.setPhone(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_PHONE)));
+                user.setAddress(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ADDRESS)));
+                list.add(user);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
+
+
 }

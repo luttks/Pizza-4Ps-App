@@ -129,4 +129,39 @@ public class OrderDAO {
             db.endTransaction();
         }
     }
+
+    // 1. Hàm lấy TẤT CẢ đơn hàng (Dành cho Admin)
+    public List<Order> getAllOrders() {
+        List<Order> list = new ArrayList<>();
+        // Lấy tất cả, sắp xếp đơn mới nhất lên đầu (DESC)
+        String sql = "SELECT * FROM " + PizzaAppDbHelper.TABLE_ORDERS +
+                " ORDER BY " + PizzaAppDbHelper.KEY_ID + " DESC";
+
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            do {
+                Order order = new Order();
+                order.setId(cursor.getInt(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ID)));
+                // Lưu ý: Đảm bảo model Order của bạn có đầy đủ các trường này
+                order.setDate(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ORDER_DATE)));
+                order.setTotalPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_TOTAL_PRICE)));
+                order.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_STATUS)));
+
+                list.add(order);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
+
+    // 2. Hàm cập nhật trạng thái đơn hàng
+    public boolean updateOrderStatus(int orderId, String newStatus) {
+        ContentValues values = new ContentValues();
+        values.put(PizzaAppDbHelper.KEY_STATUS, newStatus);
+
+        int rows = db.update(PizzaAppDbHelper.TABLE_ORDERS, values,
+                PizzaAppDbHelper.KEY_ID + " = ?",
+                new String[]{String.valueOf(orderId)});
+        return rows > 0;
+    }
 }
