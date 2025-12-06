@@ -25,8 +25,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
     // 2. Tạo Interface để Fragment lắng nghe
     public interface OnOrderClickListener {
-        void onOrderClick(int orderId);
-        void onCancelOrder(int orderId, int position);
+        void onOrderClick(long orderId);
+        void onCancelOrder(long orderId, int position);
     }
 
     // 3. Cập nhật Constructor để nhận Listener (Fix lỗi constructor)

@@ -1,25 +1,34 @@
 package com.example.pizzaapp.model;
 
+import java.util.List;
+
 public class Order {
-    private int id; // ID đơn hàng
-    private String date; // Ngày đặt
+    private Long id;
+    private Long userId;
+    private String date;
     private double totalPrice;
-    private String status; // "Đã đặt (local)"
-    // Constructor, getters, setters
+    private String status;
+
+    private List<OrderItem> items;
 
     public Order() {
     }
 
-
-    public Order(int id, String date, double totalPrice, String status) {
+    public Order(Long id, Long userId, String date, double totalPrice, String status, List<OrderItem> items) {
         this.id = id;
+        this.userId = userId;
         this.date = date;
         this.totalPrice = totalPrice;
         this.status = status;
+        this.items = items;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 
     public String getDate() {
@@ -34,8 +43,16 @@ public class Order {
         return status;
     }
 
-    public void setId(int id) {
+    public List<OrderItem> getItems() {
+        return items;
+    }
+
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public void setDate(String date) {
@@ -48,5 +65,9 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public void setItems(List<OrderItem> items) {
+        this.items = items;
     }
 }

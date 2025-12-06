@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
             loadFragment(new HomeFragment());
         }
 
-        // Xử lý sự kiện bấm vào thanh menu
+        // Xử lý sự kiện bấm vào thanh menu dưới đáy
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             int id = item.getItemId();

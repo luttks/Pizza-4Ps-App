@@ -74,7 +74,7 @@ public class OrderDAO {
                 Order order = new Order();
                 // Map dữ liệu từ SQLite vào Object
                 // Lưu ý: Cần đảm bảo model Order của bạn có các setter này
-                order.setId(cursor.getInt(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ID)));
+                order.setId(cursor.getLong(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ID)));
                 order.setDate(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ORDER_DATE)));
                 order.setTotalPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_TOTAL_PRICE)));
                 order.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_STATUS)));
@@ -141,7 +141,7 @@ public class OrderDAO {
         if (cursor.moveToFirst()) {
             do {
                 Order order = new Order();
-                order.setId(cursor.getInt(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ID)));
+                order.setId(cursor.getLong(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ID)));
                 // Lưu ý: Đảm bảo model Order của bạn có đầy đủ các trường này
                 order.setDate(cursor.getString(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_ORDER_DATE)));
                 order.setTotalPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(PizzaAppDbHelper.KEY_TOTAL_PRICE)));

@@ -1,7 +1,6 @@
 package com.example.pizzaapp.activity;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -10,10 +9,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.bumptech.glide.Glide; // Import Glide
+import com.bumptech.glide.Glide;
 import com.example.pizzaapp.R;
 import com.example.pizzaapp.database.CartDAO;
-// import com.example.pizzaapp.database.FoodDAO; // Không dùng cái này nữa
 import com.example.pizzaapp.model.Cart;
 import com.example.pizzaapp.model.Food;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
@@ -28,7 +26,6 @@ public class FoodDetailActivity extends AppCompatActivity {
     private Button btnMinusQuantity, btnPlusQuantity, btnAddToCart;
     private CollapsingToolbarLayout collapsingToolbar;
 
-    // private FoodDAO foodDAO; // Bỏ
     private CartDAO cartDAO;
     private Food currentFood;
     private int quantity = 1;
@@ -38,20 +35,17 @@ public class FoodDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_food_detail);
 
-        // foodDAO = new FoodDAO(this); // Bỏ
         cartDAO = new CartDAO(this);
-
         initViews();
         setupToolbar();
 
-        // --- [MỚI] NHẬN DỮ LIỆU TỪ INTENT ---
-        // Thay vì nhận ID, ta nhận cả Object Food
+        // Nhận object Food từ Intent
         currentFood = (Food) getIntent().getSerializableExtra("FOOD_OBJECT");
 
         if (currentFood != null) {
             loadFoodDetails();
         } else {
-            Toast.makeText(this, "Lỗi: Không tìm thấy thông tin món", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Không lấy được thông tin món!", Toast.LENGTH_SHORT).show();
             finish();
         }
 
@@ -88,20 +82,20 @@ public class FoodDetailActivity extends AppCompatActivity {
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         tvFoodDetailPrice.setText(formatter.format(currentFood.getPrice()));
 
-        // --- [MỚI] DÙNG GLIDE LOAD ẢNH URL ---
+        // Load ảnh chi tiết
         String imageUrl = currentFood.getImage();
-        // Fix localhost cho máy ảo
-        if (imageUrl.contains("localhost")) {
+        if (imageUrl != null && imageUrl.contains("localhost")) {
             imageUrl = imageUrl.replace("localhost", "10.0.2.2");
         }
-
-        Glide.with(this)
-                .load(imageUrl)
-                .placeholder(R.drawable.ic_launcher_background)
-                .error(R.drawable.ic_launcher_background)
-                .into(ivFoodDetailImage);
+        Glide.with(this).load(imageUrl).into(ivFoodDetailImage);
 
         updateAddToCartButtonText();
+    }
+
+    private void updateAddToCartButtonText() {
+        double totalPrice = currentFood.getPrice() * quantity;
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        btnAddToCart.setText(String.format("Thêm vào giỏ (%s)", formatter.format(totalPrice)));
     }
 
     private void setupEventHandlers() {
@@ -119,34 +113,27 @@ public class FoodDetailActivity extends AppCompatActivity {
             }
         });
 
+        // SỰ KIỆN QUAN TRỌNG: ADD TO CART
         btnAddToCart.setOnClickListener(v -> addItemToCart());
     }
 
-    private void updateAddToCartButtonText() {
-        double totalPrice = currentFood.getPrice() * quantity;
-        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-        btnAddToCart.setText(String.format("Add to cart (%s)", formatter.format(totalPrice)));
-    }
-
     private void addItemToCart() {
-        if (currentFood == null) return;
-
         Cart cartItem = new Cart();
-        cartItem.setId(currentFood.getId());
+        cartItem.setId(currentFood.getId());       // ID món ăn
         cartItem.setFoodName(currentFood.getName());
         cartItem.setPrice(currentFood.getPrice());
         cartItem.setQuantity(quantity);
-        cartItem.setImage(currentFood.getImage()); // Lưu URL ảnh vào giỏ hàng
-        cartItem.setCustomization("Default");
+        cartItem.setImage(currentFood.getImage()); // Lưu URL ảnh để hiển thị bên giỏ hàng
+        cartItem.setCustomization("Mặc định");
 
-        // Lưu vào SQLite Cart (Vẫn dùng SQLite cho giỏ hàng là OK)
+        // Gọi DAO để lưu vào SQLite
         long result = cartDAO.addToCart(cartItem);
 
         if (result != -1) {
             Toast.makeText(this, "Đã thêm vào giỏ hàng!", Toast.LENGTH_SHORT).show();
-            finish();
+            finish(); // Đóng màn hình chi tiết, quay lại menu
         } else {
-            Toast.makeText(this, "Thêm thất bại!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Lỗi thêm giỏ hàng!", Toast.LENGTH_SHORT).show();
         }
     }
 }

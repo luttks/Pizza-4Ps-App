@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.pizzaapp.R;
 import com.example.pizzaapp.model.Cart;
 
@@ -25,7 +26,6 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
     private List<Cart> cartList;
     private OnCartChangeListener listener;
 
-    // Interface để Activity lắng nghe sự thay đổi
     public interface OnCartChangeListener {
         void onQuantityChanged(Cart item, int newQuantity);
         void onItemDeleted(Cart item);
@@ -51,19 +51,24 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         holder.tvName.setText(item.getFoodName());
         holder.tvQuantity.setText(String.valueOf(item.getQuantity()));
 
-        // Format giá tiền
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         holder.tvPrice.setText(formatter.format(item.getPrice()));
 
-        // Load ảnh
-        int imageId = context.getResources().getIdentifier(item.getImage(), "drawable", context.getPackageName());
-        if (imageId != 0) {
-            holder.ivImage.setImageResource(imageId);
-        } else {
-            holder.ivImage.setImageResource(R.drawable.ic_launcher_background);
+        // --- CẬP NHẬT PHẦN LOAD ẢNH ---
+        String imageUrl = item.getImage();
+        // Xử lý localhost nếu chạy máy ảo
+        if (imageUrl != null && imageUrl.contains("localhost")) {
+            imageUrl = imageUrl.replace("localhost", "10.0.2.2");
         }
 
-        // Sự kiện nút Trừ
+        Glide.with(context)
+                .load(imageUrl)
+                .placeholder(R.drawable.ic_launcher_background) // Ảnh chờ
+                .error(R.drawable.ic_launcher_background)       // Ảnh lỗi
+                .into(holder.ivImage);
+        // -----------------------------
+
+        // Nút giảm
         holder.btnMinus.setOnClickListener(v -> {
             int currentQty = item.getQuantity();
             if (currentQty > 1) {
@@ -71,12 +76,12 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             }
         });
 
-        // Sự kiện nút Cộng
+        // Nút tăng
         holder.btnPlus.setOnClickListener(v -> {
             listener.onQuantityChanged(item, item.getQuantity() + 1);
         });
 
-        // Sự kiện nút Xóa
+        // Nút xóa
         holder.btnDelete.setOnClickListener(v -> {
             listener.onItemDeleted(item);
         });
@@ -95,6 +100,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
+            // Đảm bảo ID khớp với layout_item_cart.xml của bạn
             ivImage = itemView.findViewById(R.id.iv_cart_image);
             tvName = itemView.findViewById(R.id.tv_cart_name);
             tvPrice = itemView.findViewById(R.id.tv_cart_price);

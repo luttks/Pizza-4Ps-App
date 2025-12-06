@@ -7,12 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pizzaapp.R;
+//import com.example.pizzaapp.helper.CartManager;
 import com.example.pizzaapp.model.Food;
 
 import java.text.NumberFormat;
@@ -20,6 +22,8 @@ import java.util.List;
 import java.util.Locale;
 
 import com.bumptech.glide.Glide;
+import com.example.pizzaapp.model.OrderItem;
+
 public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.FoodViewHolder> {
 
     private Context context;
@@ -63,10 +67,9 @@ public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.FoodViewHolder
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         holder.tvFoodPrice.setText(formatter.format(food.getPrice()));
 
-        // --- XỬ LÝ ẢNH TỪ SERVER (QUAN TRỌNG) ---
+        // --- XỬ LÝ ẢNH TỪ SERVER---
         String imageUrl = food.getImage();
 
-        // Fix lỗi localhost trên Android Emulator
         if (imageUrl.contains("localhost")) {
             imageUrl = imageUrl.replace("localhost", "10.0.2.2");
         }
@@ -82,6 +85,7 @@ public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.FoodViewHolder
         holder.foodLayout.setOnClickListener(v -> {
             listener.onFoodClick(food);
         });
+
     }
 
     @Override

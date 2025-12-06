@@ -23,7 +23,6 @@ import com.example.pizzaapp.model.Order;
 
 import java.util.List;
 
-// QUAN TRỌNG: Thêm "implements HistoryAdapter.OnOrderClickListener" để fix lỗi override
 public class HistoryFragment extends Fragment implements HistoryAdapter.OnOrderClickListener {
 
     private RecyclerView rvHistory;
@@ -58,27 +57,34 @@ public class HistoryFragment extends Fragment implements HistoryAdapter.OnOrderC
         // 3. Truyền ID thật vào hàm lấy lịch sử
         orderList = orderDAO.getOrdersByUserId(userId);
 
-        // 4. Khởi tạo adapter (lúc này constructor đã đúng)
+        // 4. Khởi tạo adapter
         historyAdapter = new HistoryAdapter(getContext(), orderList, this);
         rvHistory.setAdapter(historyAdapter);
     }
 
     // Xử lý xem chi tiết
+    // SỬA LỖI 1: Đổi int -> long
     @Override
-    public void onOrderClick(int orderId) {
+    public void onOrderClick(long orderId) {
         Intent intent = new Intent(getContext(), OrderDetailActivity.class);
+        // Intent có thể putLong thoải mái
         intent.putExtra("ORDER_ID", orderId);
         startActivity(intent);
     }
 
     // Xử lý hủy đơn
+    // SỬA LỖI 2: Đổi int -> long
     @Override
-    public void onCancelOrder(int orderId, int position) {
+    public void onCancelOrder(long orderId, int position) {
         new AlertDialog.Builder(getContext())
                 .setTitle("Cancel Order")
                 .setMessage("Are you sure you want to cancel this order?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    boolean success = orderDAO.deleteOrder(orderId);
+
+                    // Lưu ý: Nếu OrderDAO.deleteOrder nhận vào int, ta ép kiểu (int).
+                    // Nếu sau này bạn sửa DAO thành long thì bỏ (int) đi.
+                    boolean success = orderDAO.deleteOrder((int) orderId);
+
                     if (success) {
                         orderList.remove(position);
                         historyAdapter.notifyItemRemoved(position);
