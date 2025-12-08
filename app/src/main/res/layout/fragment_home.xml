@@ -15,17 +15,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingBottom="80dp"> <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:hint="Search food or drink"
-        android:padding="12dp"
-        android:drawableStart="@android:drawable/ic_menu_search"
-        android:background="@drawable/search_bg" />
+        android:paddingBottom="80dp">
+        <EditText
+            android:id="@+id/edt_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:hint="Search food or drink"
+            android:padding="12dp"
+            android:drawableStart="@android:drawable/ic_menu_search"
+            android:background="@drawable/search_bg"
+            android:inputType="text"
+            android:maxLines="1" />
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_categories"
+            android:id="@+id/rcv_category"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"

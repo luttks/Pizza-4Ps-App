@@ -24,21 +24,26 @@ public class Food implements Serializable {
     @SerializedName("categoryId")
     private int categoryId;
 
+    @SerializedName("allergyInfo")
+    private String allergyInfo;
+
+
     // Constructor rỗng (Bắt buộc để Gson hoạt động)
     public Food() {
     }
 
     // Constructor đầy đủ
-    public Food(int id, String name, String description, double price, String image, int categoryId) {
+    public Food(int id, String name, String description, double price, String image, int categoryId, String allergyInfo) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.image = image;
         this.categoryId = categoryId;
+        this.allergyInfo = allergyInfo;
     }
 
-    // --- Getter & Setter (Giữ nguyên hoặc Generate lại) ---
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public String getName() { return name; }
@@ -51,4 +56,7 @@ public class Food implements Serializable {
     public void setImage(String image) { this.image = image; }
     public int getCategoryId() { return categoryId; }
     public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
+
+    public String getAllergyInfo() { return allergyInfo; }
+    public void setAllergyInfo(String allergyInfo) { this.allergyInfo = allergyInfo;}
 }

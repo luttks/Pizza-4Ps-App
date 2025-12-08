@@ -1,11 +1,16 @@
 package com.example.pizzaapp.activity;
 
-
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.InputType;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,6 +26,7 @@ import com.example.pizzaapp.helper.UserSession;
 import com.example.pizzaapp.model.Cart;
 import com.example.pizzaapp.model.Order;
 import com.example.pizzaapp.model.OrderItem;
+import com.example.pizzaapp.model.User;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -34,13 +40,15 @@ import retrofit2.Response;
 public class CartActivity extends AppCompatActivity implements CartAdapter.OnCartChangeListener {
 
     private RecyclerView rvCartItems;
-    private TextView tvCartTotal;
+    private TextView tvCartTotal, tvShippingAddress, btnChangeAddress;
+    private RadioGroup rgPayment;
+    private RadioButton rbCod, rbMomo;
     private Button btnCheckout;
+
     private CartAdapter cartAdapter;
     private List<Cart> cartList;
-
     private CartDAO cartDAO;
-    private OrderDAO orderDAO;
+    private String currentShippingAddress = ""; // Biến lưu địa chỉ hiện tại cho đơn hàng này
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +58,10 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         // Setup Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar_cart);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Your Cart");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Giỏ hàng");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         toolbar.setNavigationOnClickListener(v -> finish());
 
         // Init Views
@@ -59,23 +69,132 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         tvCartTotal = findViewById(R.id.tv_cart_total);
         btnCheckout = findViewById(R.id.btn_checkout);
 
-        // Init DAO
-        cartDAO = new CartDAO(this);
-        orderDAO = new OrderDAO(this);
+        // Mới thêm
+        tvShippingAddress = findViewById(R.id.tv_shipping_address);
+        btnChangeAddress = findViewById(R.id.btn_change_address);
+        rgPayment = findViewById(R.id.rg_payment);
+        rbCod = findViewById(R.id.rb_cod);
+        rbMomo = findViewById(R.id.rb_momo);
 
-        // Setup RecyclerView
+        cartDAO = new CartDAO(this);
+
         rvCartItems.setLayoutManager(new LinearLayoutManager(this));
         cartList = new ArrayList<>();
         cartAdapter = new CartAdapter(this, cartList, this);
         rvCartItems.setAdapter(cartAdapter);
 
-        // Load data
         loadCartData();
+        loadUserAddress(); // Hàm mới để load địa chỉ
+
+        // Sự kiện đổi địa chỉ
+        btnChangeAddress.setOnClickListener(v -> showChangeAddressDialog());
 
         // Nút Thanh toán
         btnCheckout.setOnClickListener(v -> handleCheckout());
     }
 
+    // Logic 1: Load địa chỉ mặc định của User
+    private void loadUserAddress() {
+        UserSession session = new UserSession(this);
+        User user = session.getUser();
+        if (user != null && user.getAddress() != null && !user.getAddress().isEmpty()) {
+            currentShippingAddress = user.getAddress();
+            tvShippingAddress.setText(currentShippingAddress);
+        } else {
+            tvShippingAddress.setText("Chưa có địa chỉ. Vui lòng thêm!");
+        }
+    }
+
+    // Logic 2: Hiển thị Dialog để nhập địa chỉ mới
+    private void showChangeAddressDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Nhập địa chỉ giao hàng");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint("Số nhà, tên đường, phường/xã...");
+        // Nếu đã có địa chỉ thì điền sẵn vào
+        input.setText(currentShippingAddress);
+        builder.setView(input);
+
+        builder.setPositiveButton("Xác nhận", (dialog, which) -> {
+            String newAddress = input.getText().toString().trim();
+            if (!newAddress.isEmpty()) {
+                currentShippingAddress = newAddress;
+                tvShippingAddress.setText(currentShippingAddress);
+            } else {
+                Toast.makeText(CartActivity.this, "Địa chỉ không được để trống!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void handleCheckout() {
+        if (cartList.isEmpty()) {
+            Toast.makeText(this, "Giỏ hàng trống!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Kiểm tra địa chỉ
+        if (currentShippingAddress.isEmpty()) {
+            Toast.makeText(this, "Vui lòng nhập địa chỉ giao hàng!", Toast.LENGTH_LONG).show();
+            showChangeAddressDialog(); // Mở luôn dialog cho người dùng nhập
+            return;
+        }
+
+        UserSession session = new UserSession(this);
+        User user = session.getUser();
+        if (user == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập lại!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int userId = user.getId();
+
+        // Kiểm tra phương thức thanh toán
+        String selectedPayment = "COD";
+        if (rbMomo.isChecked()) {
+            selectedPayment = "MOMO";
+            // TODO: Giai đoạn 4 sẽ xử lý gọi App MoMo ở đây
+            Toast.makeText(this, "Tính năng MoMo đang phát triển, tạm thời dùng COD", Toast.LENGTH_SHORT).show();
+            // Nếu muốn test flow thì cứ để nó chạy tiếp, hoặc return để chặn
+        }
+
+        double total = 0;
+        for (Cart item : cartList) {
+            total += item.getPrice() * item.getQuantity();
+        }
+
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (Cart cart : cartList) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setFoodId((long) cart.getId());
+            orderItem.setFoodName(cart.getFoodName());
+            orderItem.setPrice(cart.getPrice());
+            orderItem.setQuantity(cart.getQuantity());
+            orderItem.setFoodImage(cart.getImage());
+            orderItems.add(orderItem);
+        }
+
+        Order orderRequest = new Order();
+        orderRequest.setUserId((long) userId);
+        orderRequest.setTotalPrice(total);
+        orderRequest.setStatus("Processing");
+        String currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new java.util.Date());
+        orderRequest.setDate(currentDate);
+        orderRequest.setItems(orderItems);
+
+        // --- SET CÁC TRƯỜNG MỚI ---
+        orderRequest.setShippingAddress(currentShippingAddress);
+        orderRequest.setPaymentMethod(selectedPayment);
+
+        sendOrderToServer(orderRequest, userId, total);
+    }
+
+    // ... Các hàm loadCartData, updateTotalPrice, onQuantityChanged, sendOrderToServer giữ nguyên ...
+    // (Copy lại từ code cũ của bạn)
     private void loadCartData() {
         cartList.clear();
         cartList.addAll(cartDAO.getAllItems());
@@ -90,105 +209,42 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         }
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         tvCartTotal.setText(formatter.format(total));
-
-        // Disable nút thanh toán nếu giỏ hàng trống
         btnCheckout.setEnabled(!cartList.isEmpty());
     }
 
-    // Xử lý sự kiện thay đổi số lượng từ Adapter
     @Override
     public void onQuantityChanged(Cart item, int newQuantity) {
         cartDAO.updateQuantity(item.getId(), newQuantity);
-        item.setQuantity(newQuantity); // Cập nhật list trong RAM
-        cartAdapter.notifyDataSetChanged();
+        item.setQuantity(newQuantity);
         updateTotalPrice();
     }
 
-    // Xử lý sự kiện xóa món từ Adapter
     @Override
     public void onItemDeleted(Cart item) {
         cartDAO.deleteItem(item.getId());
-        cartList.remove(item); // Xóa khỏi list trong RAM
+        cartList.remove(item);
         cartAdapter.notifyDataSetChanged();
         updateTotalPrice();
-        Toast.makeText(this, "Đã xóa món ăn", Toast.LENGTH_SHORT).show();
-    }
-
-    private void handleCheckout() {
-        if (cartList.isEmpty()) return;
-
-        // 1. Lấy User ID
-        UserSession session = new UserSession(this);
-        // Kiểm tra an toàn: Nếu chưa login thì không cho đặt
-        if (session.getUser() == null) {
-            Toast.makeText(this, "Vui lòng đăng nhập lại!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        int userId = session.getUser().getId();
-
-        double total = 0;
-        for (Cart item : cartList) {
-            total += item.getPrice() * item.getQuantity();
-        }
-
-        // 2. Map Cart -> OrderItem
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (Cart cart : cartList) {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setFoodId((long) cart.getId());
-            orderItem.setFoodName(cart.getFoodName());
-            orderItem.setPrice(cart.getPrice());
-            orderItem.setQuantity(cart.getQuantity());
-            orderItems.add(orderItem);
-        }
-
-        // 3. Tạo Order Object
-        Order orderRequest = new Order();
-        orderRequest.setUserId((long) userId);
-        orderRequest.setTotalPrice(total);
-        orderRequest.setStatus("Processing");
-
-        // Thêm ngày giờ hiện tại
-        String currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new java.util.Date());
-        orderRequest.setDate(currentDate);
-
-        orderRequest.setItems(orderItems);
-
-        // 4. Gửi lên Server
-        sendOrderToServer(orderRequest, userId, total);
     }
 
     private void sendOrderToServer(Order orderRequest, int userId, double total) {
-        // Khởi tạo API Service (Đảm bảo bạn đã có class ApiClient để lấy Retrofit instance)
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-
         Call<Order> call = apiService.createOrder(orderRequest);
         call.enqueue(new Callback<Order>() {
             @Override
             public void onResponse(Call<Order> call, Response<Order> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    // A. THÀNH CÔNG TRÊN SERVER
-                    // Server đã lưu vào DB (PostgreSQL/MySQL) xong.
-
-                    // B. Lưu bản sao vào SQLite (để xem offline nếu cần - tuỳ chọn)
-                    // orderDAO.createOrder(userId, cartList, total);
-
-                    // C. Xóa giỏ hàng & Chuyển màn hình
+                if (response.isSuccessful()) {
                     cartDAO.clearCart();
                     Toast.makeText(CartActivity.this, "Đặt hàng thành công!", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
-                    // Server trả về lỗi (400, 500...)
                     Toast.makeText(CartActivity.this, "Lỗi server: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onFailure(Call<Order> call, Throwable t) {
-                // Lỗi mạng, rớt mạng, hoặc server chết
                 Toast.makeText(CartActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 }

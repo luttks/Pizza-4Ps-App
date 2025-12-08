@@ -7,15 +7,26 @@ public class OrderItem {
     private Double price;
     private Integer quantity;
 
+    private String foodImage;
+
     public OrderItem() {
     }
 
-    public OrderItem(Long id, Long foodId, String foodName, Double price, Integer quantity) {
+    public OrderItem(Long id, Long foodId, String foodName, Double price, Integer quantity, String foodImage) {
         this.id = id;
         this.foodId = foodId;
         this.foodName = foodName;
         this.price = price;
         this.quantity = quantity;
+        this.foodImage = foodImage;
+    }
+
+    public String getFoodImage() {
+        return foodImage;
+    }
+
+    public void setFoodImage(String foodImage) {
+        this.foodImage = foodImage;
     }
 
     public Long getId() {

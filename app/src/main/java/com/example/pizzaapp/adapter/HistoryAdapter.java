@@ -4,14 +4,16 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.pizzaapp.R;
 import com.example.pizzaapp.model.Order;
+import com.example.pizzaapp.model.OrderItem;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -21,15 +23,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
     private Context context;
     private List<Order> orderList;
-    private OnOrderClickListener listener; // 1. Khai báo Listener
+    private OnOrderClickListener listener;
 
-    // 2. Tạo Interface để Fragment lắng nghe
     public interface OnOrderClickListener {
         void onOrderClick(long orderId);
         void onCancelOrder(long orderId, int position);
     }
 
-    // 3. Cập nhật Constructor để nhận Listener (Fix lỗi constructor)
     public HistoryAdapter(Context context, List<Order> orderList, OnOrderClickListener listener) {
         this.context = context;
         this.orderList = orderList;
@@ -54,32 +54,46 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         holder.tvOrderTotal.setText(formatter.format(order.getTotalPrice()));
 
-        // Logic ẩn hiện nút Hủy
+        // --- LOGIC LOAD ẢNH ---
+        // Lấy ảnh của món đầu tiên trong list items để hiển thị
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            OrderItem firstItem = order.getItems().get(0);
+            String imageUrl = firstItem.getFoodImage();
+
+            if (imageUrl != null && imageUrl.contains("localhost")) {
+                imageUrl = imageUrl.replace("localhost", "10.0.2.2");
+            }
+
+            Glide.with(context)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_background)
+                    .into(holder.ivOrderThumb);
+        } else {
+            holder.ivOrderThumb.setImageResource(R.drawable.ic_launcher_background);
+        }
+        // ----------------------
+
+        // Chỉ hiện nút hủy khi Status là "Processing"
         if ("Processing".equals(order.getStatus())) {
             holder.btnCancel.setVisibility(View.VISIBLE);
+            holder.btnCancel.setOnClickListener(v -> listener.onCancelOrder(order.getId(), position));
         } else {
             holder.btnCancel.setVisibility(View.GONE);
         }
 
-        // Bắt sự kiện bấm nút Hủy
-        holder.btnCancel.setOnClickListener(v -> {
-            listener.onCancelOrder(order.getId(), position);
-        });
-
-        // Bắt sự kiện bấm vào cả dòng (Xem chi tiết)
-        holder.itemView.setOnClickListener(v -> {
-            listener.onOrderClick(order.getId());
-        });
+        holder.itemView.setOnClickListener(v -> listener.onOrderClick(order.getId()));
     }
 
     @Override
     public int getItemCount() {
-        return orderList.size();
+        if(orderList != null) return orderList.size();
+        return 0;
     }
 
     public static class HistoryViewHolder extends RecyclerView.ViewHolder {
         TextView tvOrderId, tvOrderDate, tvOrderStatus, tvOrderTotal;
-        Button btnCancel;
+        ImageView btnCancel, ivOrderThumb; // Thêm ivOrderThumb
 
         public HistoryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -87,7 +101,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             tvOrderDate = itemView.findViewById(R.id.tv_order_date);
             tvOrderStatus = itemView.findViewById(R.id.tv_order_status);
             tvOrderTotal = itemView.findViewById(R.id.tv_order_total);
-            btnCancel = itemView.findViewById(R.id.btn_cancel_order); // Nút hủy (đảm bảo đã thêm trong layout xml)
+            btnCancel = itemView.findViewById(R.id.btn_cancel_order);
+            ivOrderThumb = itemView.findViewById(R.id.iv_order_thumb); // Ánh xạ
         }
     }
 }

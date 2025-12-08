@@ -41,10 +41,6 @@
             android:name=".activity.OrderDetailActivity"
             android:parentActivityName=".activity.MainActivity"
             android:label="Order Details" />
-        <activity android:name=".activity.AdminActivity" />
-        <activity android:name=".activity.AdminFoodActivity" />
-        <activity android:name=".activity.AdminOrderActivity" />
-        <activity android:name=".activity.AdminUserActivity" />
 
 
     </application>

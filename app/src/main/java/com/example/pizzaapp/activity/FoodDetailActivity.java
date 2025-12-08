@@ -1,6 +1,7 @@
 package com.example.pizzaapp.activity;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -18,6 +19,7 @@ import com.google.android.material.appbar.CollapsingToolbarLayout;
 
 import java.text.NumberFormat;
 import java.util.Locale;
+import android.graphics.Color;
 
 public class FoodDetailActivity extends AppCompatActivity {
 
@@ -26,9 +28,12 @@ public class FoodDetailActivity extends AppCompatActivity {
     private Button btnMinusQuantity, btnPlusQuantity, btnAddToCart;
     private CollapsingToolbarLayout collapsingToolbar;
 
+    private TextView tvAllergyInfo;
+
     private CartDAO cartDAO;
     private Food currentFood;
     private int quantity = 1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +67,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         btnPlusQuantity = findViewById(R.id.btn_plus_quantity);
         btnAddToCart = findViewById(R.id.btn_add_to_cart);
         collapsingToolbar = findViewById(R.id.collapsing_toolbar);
+        tvAllergyInfo = findViewById(R.id.tv_allergy_info);
     }
 
     private void setupToolbar() {
@@ -76,6 +82,7 @@ public class FoodDetailActivity extends AppCompatActivity {
 
     private void loadFoodDetails() {
         collapsingToolbar.setTitle(currentFood.getName());
+        collapsingToolbar.setExpandedTitleColor(Color.TRANSPARENT);
         tvFoodDetailName.setText(currentFood.getName());
         tvFoodDetailDescription.setText(currentFood.getDescription());
 
@@ -88,7 +95,12 @@ public class FoodDetailActivity extends AppCompatActivity {
             imageUrl = imageUrl.replace("localhost", "10.0.2.2");
         }
         Glide.with(this).load(imageUrl).into(ivFoodDetailImage);
-
+        if (currentFood.getAllergyInfo() != null && !currentFood.getAllergyInfo().isEmpty()) {
+            tvAllergyInfo.setText("⚠️ Cảnh báo dị ứng: " + currentFood.getAllergyInfo());
+            tvAllergyInfo.setVisibility(View.VISIBLE);
+        } else {
+            tvAllergyInfo.setVisibility(View.GONE);
+        }
         updateAddToCartButtonText();
     }
 

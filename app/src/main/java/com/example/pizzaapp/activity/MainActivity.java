@@ -3,7 +3,6 @@ package com.example.pizzaapp.activity;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-
 import com.example.pizzaapp.R;
 import com.example.pizzaapp.fragment.AccountFragment;
 import com.example.pizzaapp.fragment.HistoryFragment;

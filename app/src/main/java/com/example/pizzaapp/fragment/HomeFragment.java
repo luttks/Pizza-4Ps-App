@@ -2,9 +2,12 @@ package com.example.pizzaapp.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher; // Import TextWatcher
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,179 +17,203 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pizzaapp.R;
+import com.example.pizzaapp.activity.CartActivity;
 import com.example.pizzaapp.activity.FoodDetailActivity;
 import com.example.pizzaapp.adapter.CategoryAdapter;
 import com.example.pizzaapp.adapter.FoodAdapter;
-import com.example.pizzaapp.database.CategoryDAO;
-// import com.example.pizzaapp.database.FoodDAO; // [CŨ] Không dùng DAO nữa
+import com.example.pizzaapp.api.ApiService;
 import com.example.pizzaapp.model.Category;
 import com.example.pizzaapp.model.Food;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.example.pizzaapp.activity.CartActivity;
-
-// --- [MỚI] Import thư viện API ---
-import com.example.pizzaapp.api.ApiService;
-import com.example.pizzaapp.api.RetrofitClient;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class HomeFragment extends Fragment implements CategoryAdapter.OnCategoryClickListener, FoodAdapter.OnFoodClickListener {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
-    private RecyclerView rvCategories, rvFoods;
+public class HomeFragment extends Fragment {
+
+    private RecyclerView rcvCategory, rcvFood;
     private CategoryAdapter categoryAdapter;
     private FoodAdapter foodAdapter;
-
-    private CategoryDAO categoryDAO;
-    // private FoodDAO foodDAO; // [CŨ] Tạm thời tắt FoodDAO
-
-    private List<Category> categoryList;
-    private List<Food> foodList;
     private FloatingActionButton fabCart;
 
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private List<Category> mListCategory;
+    private List<Food> mListFood;
 
-    public HomeFragment() {
-        // Required empty public constructor
-    }
+    // List dự phòng để tìm kiếm
+    private List<Food> mListFoodFull;
 
+    private ApiService apiService;
+    private EditText edtSearch;
+
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_home, container, false);
-    }
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        // Ánh xạ view
-        rvCategories = view.findViewById(R.id.rv_categories);
-        rvFoods = view.findViewById(R.id.rv_foods);
-
-        // Khởi tạo DAO
-        categoryDAO = new CategoryDAO(getContext());
-        // foodDAO = new FoodDAO(getContext()); // [CŨ] Tắt khởi tạo DAO
-
-        // Khởi tạo danh sách
-        foodList = new ArrayList<>();
-
-        // Ánh xạ nút FAB
+        // 1. Ánh xạ View
+        rcvCategory = view.findViewById(R.id.rcv_category);
+        rcvFood = view.findViewById(R.id.rv_foods);
         fabCart = view.findViewById(R.id.fab_cart);
 
-        // 1. Ánh xạ SwipeRefreshLayout
-        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh);
+        // --- FIX 1: Ánh xạ EditText Search ---
+        edtSearch = view.findViewById(R.id.edt_search);
+        // -------------------------------------
 
-        // 2. Cài đặt sự kiện: Khi kéo xuống thì làm gì?
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadFoodsFromApi(); // Gọi lại API lấy món ăn
+        fabCart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), CartActivity.class);
+                startActivity(intent);
+            }
         });
 
-        // Màu sắc vòng tròn xoay xoay (cho đẹp)
-        swipeRefreshLayout.setColorSchemeResources(R.color.purple_700);
+        // --- FIX 2: Bắt sự kiện gõ chữ để gọi hàm tìm kiếm ---
+        edtSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        // Xử lý sự kiện bấm nút Giỏ hàng
-        fabCart.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), CartActivity.class);
-            startActivity(intent);
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Gọi hàm lọc khi text thay đổi
+                filterFood(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+        // ----------------------------------------------------
+
+        // 2. Khởi tạo Retrofit & ApiService
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://10.0.2.2:8080/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        apiService = retrofit.create(ApiService.class);
+
+        // 3. Setup RecyclerViews
+        mListCategory = new ArrayList<>();
+        // --- FIX 3: Khởi tạo list gốc để tránh NullPointerException ---
+        mListFoodFull = new ArrayList<>();
+        mListFood = new ArrayList<>();
+        // -------------------------------------------------------------
+
+        categoryAdapter = new CategoryAdapter(getContext(), mListCategory, new CategoryAdapter.OnCategoryClickListener() {
+            @Override
+            public void onCategoryClick(Category category) {
+                callApiGetFoodsByCategory(category.getId());
+            }
         });
 
-        // Setup RecyclerViews
-        setupCategoryRecyclerView();
-        setupFoodRecyclerView();
+        rcvCategory.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false));
+        rcvCategory.setAdapter(categoryAdapter);
 
-        // --- [MỚI] Gọi API thay vì load từ SQLite ---
-        loadCategories(); // Vẫn load Category từ SQLite để giữ giao diện menu ngang
-        loadFoodsFromApi(); // Load món ăn từ Server
+        foodAdapter = new FoodAdapter(getContext(), mListFood, new FoodAdapter.OnFoodClickListener() {
+            @Override
+            public void onFoodClick(Food food) {
+                Intent intent = new Intent(getContext(), FoodDetailActivity.class);
+                intent.putExtra("FOOD_OBJECT", food);
+                startActivity(intent);
+            }
+        });
+
+        rcvFood.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
+        rcvFood.setAdapter(foodAdapter);
+
+        callApiGetCategories();
+        callApiGetAllFoods();
+
+        return view;
     }
 
-    private void setupCategoryRecyclerView() {
-        rvCategories.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+    private void filterFood(String text) {
+        List<Food> filteredList = new ArrayList<>();
+
+        // Kiểm tra nếu list gốc chưa có dữ liệu thì return để tránh lỗi
+        if (mListFoodFull == null || mListFoodFull.isEmpty()) {
+            return;
+        }
+
+        if (text == null || text.isEmpty()) {
+            filteredList.addAll(mListFoodFull);
+        } else {
+            String filterPattern = text.toLowerCase().trim();
+            for (Food item : mListFoodFull) {
+                if (item.getName().toLowerCase().contains(filterPattern)) {
+                    filteredList.add(item);
+                }
+            }
+        }
+
+        // Cập nhật lại RecyclerView
+        if (foodAdapter != null) {
+            foodAdapter.updateData(filteredList);
+        }
     }
 
-    private void setupFoodRecyclerView() {
-        rvFoods.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-        foodAdapter = new FoodAdapter(getContext(), foodList, this);
-        rvFoods.setAdapter(foodAdapter);
+    // --- CÁC HÀM GỌI API ---
+
+    private void callApiGetCategories() {
+        apiService.getCategories().enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    categoryAdapter.setData(response.body());
+                }
+            }
+            @Override
+            public void onFailure(Call<List<Category>> call, Throwable t) {}
+        });
     }
 
-    // --- [MỚI] Hàm gọi API lấy danh sách món ăn ---
-    private void loadFoodsFromApi() {
-        // 1. Tạo Service
-        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-
-        // 2. Gọi API
+    private void callApiGetAllFoods() {
         apiService.getListFood().enqueue(new Callback<List<Food>>() {
             @Override
             public void onResponse(Call<List<Food>> call, Response<List<Food>> response) {
-                swipeRefreshLayout.setRefreshing(false);
-
                 if (response.isSuccessful() && response.body() != null) {
-                    foodList = response.body();
-                    foodAdapter.updateData(foodList);
-                     Toast.makeText(getContext(), "Đã cập nhật menu!", Toast.LENGTH_SHORT).show();
+                    // --- FIX 4: Lưu dữ liệu vào list gốc (Full) ---
+                    mListFoodFull.clear();
+                    mListFoodFull.addAll(response.body());
+                    // ----------------------------------------------
+
+                    foodAdapter.updateData(response.body());
+                }
+            }
+            @Override
+            public void onFailure(Call<List<Food>> call, Throwable t) {
+                if(getContext() != null)
+                    Toast.makeText(getContext(), "Lỗi load món: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void callApiGetFoodsByCategory(int categoryId) {
+        // Reset thanh tìm kiếm về rỗng khi chọn category mới
+        edtSearch.setText("");
+
+        apiService.getFoodsByCategory(categoryId).enqueue(new Callback<List<Food>>() {
+            @Override
+            public void onResponse(Call<List<Food>> call, Response<List<Food>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // --- FIX 5: Cập nhật list gốc theo category mới ---
+                    mListFoodFull.clear();
+                    mListFoodFull.addAll(response.body());
+                    // -------------------------------------------------
+
+                    foodAdapter.updateData(response.body());
                 }
             }
 
             @Override
             public void onFailure(Call<List<Food>> call, Throwable t) {
-                // Lỗi kết nối (Server chưa bật, sai IP, mất mạng...)
-                swipeRefreshLayout.setRefreshing(false); // tat vong xoay
-                Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                if(getContext() != null)
+                    Toast.makeText(getContext(), "Lỗi lọc món: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-    private void loadCategories() {
-        categoryList = categoryDAO.getAll();
-        if (categoryList != null && !categoryList.isEmpty()) {
-            categoryAdapter = new CategoryAdapter(getContext(), categoryList, this);
-            rvCategories.setAdapter(categoryAdapter);
-
-            // [CŨ] Trước đây ta load món ăn theo category đầu tiên từ SQLite
-            // loadFoodsByCategory(categoryList.get(0).getId());
-        } else {
-            // Toast.makeText(getContext(), "Không tìm thấy danh mục", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    // [CŨ] Hàm này tạm thời không dùng vì ta đang load TOÀN BỘ món từ API
-    /*
-    private void loadFoodsByCategory(int categoryId) {
-        List<Food> newFoodList = foodDAO.getFoodByCategory(categoryId);
-        if (newFoodList != null) {
-            foodAdapter.updateData(newFoodList);
-        }
-    }
-    */
-
-    @Override
-    public void onCategoryClick(Category category) {
-        // [CŨ] Khi bấm category -> lọc món ăn từ SQLite
-        // loadFoodsByCategory(category.getId());
-
-        // [MỚI] Hiện tại API chưa có chức năng lọc theo Category,
-        // nên tạm thời bấm vào chỉ hiện Toast thông báo
-        Toast.makeText(getContext(), "Đang hiển thị tất cả món từ Server", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onFoodClick(Food food) {
-        Intent intent = new Intent(getContext(), FoodDetailActivity.class);
-
-        // [CŨ] Chỉ gửi ID -> Detail tự tìm trong SQLite (Sai logic)
-        // intent.putExtra("FOOD_ID", food.getId());
-
-        // [MỚI] Gửi nguyên cả cục Food (Object) sang
-        // Điều kiện: Class Food phải "implements Serializable" (Ta đã làm ở bước trước)
-        intent.putExtra("FOOD_OBJECT", food);
-
-        startActivity(intent);
-    }
-
 }

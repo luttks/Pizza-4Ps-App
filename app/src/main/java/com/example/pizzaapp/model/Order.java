@@ -9,18 +9,24 @@ public class Order {
     private double totalPrice;
     private String status;
 
+    private String shippingAddress;
+
+    private String paymentMethod;
+
     private List<OrderItem> items;
 
     public Order() {
     }
 
-    public Order(Long id, Long userId, String date, double totalPrice, String status, List<OrderItem> items) {
+    public Order(Long id, Long userId, String date, double totalPrice, String status, List<OrderItem> items, String shippingAddress, String paymentMethod, String address) {
         this.id = id;
         this.userId = userId;
         this.date = date;
         this.totalPrice = totalPrice;
         this.status = status;
         this.items = items;
+        this.shippingAddress = shippingAddress;
+        this.paymentMethod = paymentMethod;
     }
 
     public Long getId() {
@@ -70,4 +76,22 @@ public class Order {
     public void setItems(List<OrderItem> items) {
         this.items = items;
     }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
 }
+
+

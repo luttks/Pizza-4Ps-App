@@ -145,6 +145,8 @@ public class PizzaAppDbHelper extends SQLiteOpenHelper {
         cat2.put(KEY_IMAGE, "cat_appetizer");
         long cat2Id = db.insert(TABLE_CATEGORIES, null, cat2);
 
+
+
         // 2. Chèn Foods (Pizza)
         ContentValues food1 = new ContentValues();
         food1.put(KEY_NAME, "Spicy Beef Kebab Pizza");

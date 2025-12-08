@@ -17,12 +17,18 @@ import com.example.pizzaapp.R;
 import com.example.pizzaapp.activity.LoginActivity;
 import com.example.pizzaapp.helper.UserSession;
 import com.example.pizzaapp.model.User;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 
 public class AccountFragment extends Fragment {
 
     private TextView tvEmail, tvPhone, tvAddress;
     private Button btnLogout;
     private UserSession session;
+
+    // Thêm biến Google Client
+    private GoogleSignInClient mGoogleSignInClient;
 
     public AccountFragment() {
         // Required empty public constructor
@@ -38,31 +44,45 @@ public class AccountFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Ánh xạ View
+        // 1. Ánh xạ View
         tvEmail = view.findViewById(R.id.tv_acc_email);
         tvPhone = view.findViewById(R.id.tv_acc_phone);
         tvAddress = view.findViewById(R.id.tv_acc_address);
         btnLogout = view.findViewById(R.id.btn_logout);
 
-        // Khởi tạo Session
+        // 2. Khởi tạo Session
         session = new UserSession(getContext());
 
-        // Lấy thông tin User và hiển thị
+        // 3. Khởi tạo Google Client (để dùng cho việc đăng xuất)
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
+
+        // 4. Hiển thị thông tin User
         if (session.isLoggedIn()) {
             User user = session.getUser();
             tvEmail.setText("Email: " + user.getEmail());
-            tvPhone.setText("Phone: " + user.getPhone());
-            tvAddress.setText("Address: " + user.getAddress());
+            // Kiểm tra null để tránh lỗi crash nếu user Google không có sđt/địa chỉ
+            tvPhone.setText("Phone: " + (user.getPhone() != null ? user.getPhone() : "Chưa cập nhật"));
+            tvAddress.setText("Address: " + (user.getAddress() != null ? user.getAddress() : "Chưa cập nhật"));
         }
 
-        // Xử lý sự kiện Đăng xuất
-        btnLogout.setOnClickListener(v -> {
-            session.logoutUser(); // Xóa session
-            Toast.makeText(getContext(), "Logged out successfully!", Toast.LENGTH_SHORT).show();
+        // 5. Xử lý sự kiện Đăng xuất
+        btnLogout.setOnClickListener(v -> performLogout());
+    }
 
-            // Chuyển về màn hình Login
+    private void performLogout() {
+        // B1: Xóa Session lưu trong máy (SharedPreferences)
+        session.logoutUser();
+
+        // B2: Đăng xuất khỏi Google (Quan trọng)
+        mGoogleSignInClient.signOut().addOnCompleteListener(requireActivity(), task -> {
+            // B3: Sau khi Google sign out xong thì mới chuyển màn hình
+            Toast.makeText(getContext(), "Đăng xuất thành công!", Toast.LENGTH_SHORT).show();
+
             Intent intent = new Intent(getContext(), LoginActivity.class);
-            // Xóa hết các activity trước đó để user không bấm Back quay lại được
+            // Cờ này để xóa sạch stack Activity, user không thể bấm Back để quay lại
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });

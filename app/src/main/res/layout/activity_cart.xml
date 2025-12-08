@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -19,45 +20,133 @@
         android:layout_weight="1"
         android:padding="8dp"/>
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
         android:background="@color/white"
-        android:elevation="16dp">
+        android:elevation="16dp"
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Total:"
-                android:textSize="20sp"
-                android:textStyle="bold"/>
+                android:text="Địa chỉ giao hàng"
+                android:textStyle="bold"
+                android:textSize="16sp" />
 
-            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_dialog_map"
+                    app:tint="@color/purple_700"/>
+
+                <TextView
+                    android:id="@+id/tv_shipping_address"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Chưa có địa chỉ"
+                    android:textColor="@color/black"
+                    android:maxLines="2"
+                    android:ellipsize="end"/>
+
+                <TextView
+                    android:id="@+id/btn_change_address"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thay đổi"
+                    android:textColor="@color/purple_700"
+                    android:textStyle="bold"
+                    android:padding="8dp"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"/>
 
             <TextView
-                android:id="@+id/tv_cart_total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0đ"
-                android:textSize="20sp"
-                android:textColor="@color/purple_700"
-                android:textStyle="bold"/>
+                android:text="Phương thức thanh toán"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+
+            <RadioGroup
+                android:id="@+id/rg_payment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <RadioButton
+                    android:id="@+id/rb_cod"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Thanh toán khi nhận hàng (COD)"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/rb_momo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Ví MoMo"/>
+            </RadioGroup>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tổng cộng:"
+                    android:textSize="20sp"
+                    android:textStyle="bold"/>
+
+                <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+
+                <TextView
+                    android:id="@+id/tv_cart_total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0đ"
+                    android:textSize="20sp"
+                    android:textColor="@color/purple_700"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_checkout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ĐẶT HÀNG"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:padding="12dp"/>
         </LinearLayout>
-
-        <Button
-            android:id="@+id/btn_checkout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Place Order"
-            android:textSize="18sp"
-            android:padding="12dp"/>
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>
