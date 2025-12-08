@@ -1,3 +1,13 @@
+
+import java.util.Properties
+import java.io.FileInputStream
+
+val properties = Properties()
+val localPropertiesFile = project.rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    properties.load(FileInputStream(localPropertiesFile))
+}
+
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -5,6 +15,10 @@ plugins {
 android {
     namespace = "com.example.pizzaapp"
     compileSdk = 36
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.pizzaapp"
@@ -14,6 +28,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+// Lấy giá trị từ local.properties
+        val webClientId = properties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""
+
+        buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
+
     }
 
     buildTypes {

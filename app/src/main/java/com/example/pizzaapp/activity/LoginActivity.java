@@ -24,6 +24,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.example.pizzaapp.BuildConfig;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -67,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
         // 3. Cấu hình Google Sign In
         // LƯU Ý: Thay YOUR_WEB_CLIENT_ID bằng ID lấy trong google-services.json
         // (Tìm dòng client_id có client_type: 3)
-        String webClientId = "378592990830-63hdaekh6d935l3foc497rboe8uu1viq.apps.googleusercontent.com";
+        String webClientId = BuildConfig.WEB_CLIENT_ID;
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(webClientId)
