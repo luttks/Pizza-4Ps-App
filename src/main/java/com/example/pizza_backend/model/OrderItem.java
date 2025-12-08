@@ -23,6 +23,8 @@ public class OrderItem {
 
     private String foodName; // them neu nhu mon nay sau nay bi xoa
 
+    private String foodImage;
+
     private Double price;
 
     private Integer quantity;

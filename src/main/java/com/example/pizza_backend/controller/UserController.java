@@ -1,10 +1,18 @@
 package com.example.pizza_backend.controller;
 
+import com.example.pizza_backend.dto.GoogleLoginRequest;
 import com.example.pizza_backend.model.User;
 import com.example.pizza_backend.repository.UserRepository;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Collections;
+import org.springframework.http.HttpStatus;
 
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -54,6 +62,54 @@ public class UserController {
             return ResponseEntity.ok(user);
         } else {
             return ResponseEntity.status(401).body("Invalid Email or Password");
+        }
+    }
+
+    // Thay bằng Client ID lấy từ google-services.json của Android App (client_type:
+    // 3)
+    private static final String GOOGLE_CLIENT_ID = "";
+
+    @PostMapping("/login-google")
+    public ResponseEntity<?> loginWithGoogle(@RequestBody GoogleLoginRequest requestBody) {
+        try {
+            // 1. Cấu hình bộ xác thực (Verifier)
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(),
+                    new GsonFactory())
+                    .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
+                    .build();
+
+            // 2. Xác thực Token gửi từ Android
+            GoogleIdToken idToken = verifier.verify(requestBody.getIdToken());
+
+            if (idToken != null) {
+                // Token hợp lệ -> Lấy thông tin User
+                GoogleIdToken.Payload payload = idToken.getPayload();
+                String email = payload.getEmail();
+                String name = (String) payload.get("name");
+
+                // 3. Kiểm tra User trong Database
+                User user = userRepository.findByEmail(email);
+
+                if (user == null) {
+                    // 3a. Nếu chưa có -> Tự động ĐĂNG KÝ
+                    user = new User();
+                    user.setEmail(email);
+                    user.setName(name);
+                    user.setPassword(""); // User Google không cần pass
+                    user.setPhone(""); // Có thể cho user cập nhật sau
+                    user.setAddress("");
+                    userRepository.save(user);
+                }
+
+                // 3b. Nếu có rồi -> ĐĂNG NHẬP (Trả về User đó)
+                return ResponseEntity.ok(user);
+
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token.");
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi Server: " + e.getMessage());
         }
     }
 }

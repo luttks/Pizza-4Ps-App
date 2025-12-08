@@ -1,6 +1,7 @@
 package com.example.pizza_backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*; // Import cái này để dùng @RestController, @PutMapping
 
@@ -60,5 +61,32 @@ public class OrderController {
             order.setStatus(status);
             return ResponseEntity.ok(orderRepository.save(order));
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long id) {
+        try {
+            // 1. Tìm đơn hàng trong DB
+            Order order = orderRepository.findById(id).orElse(null);
+
+            if (order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Đơn hàng không tồn tại");
+            }
+
+            // 2. Kiểm tra trạng thái: Chỉ được hủy khi đang "Processing"
+            if (!"Processing".equals(order.getStatus())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Không thể hủy đơn hàng này (Đang giao hoặc đã hoàn thành)");
+            }
+
+            // 3. Thực hiện xóa
+            // Vì trong Entity Order bạn đã để CascadeType.ALL, nên nó sẽ tự xóa luôn các
+            // OrderItem đi kèm
+            orderRepository.delete(order);
+
+            return ResponseEntity.ok().body("Đã hủy đơn hàng thành công");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi server: " + e.getMessage());
+        }
     }
 }

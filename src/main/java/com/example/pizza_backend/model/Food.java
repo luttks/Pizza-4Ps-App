@@ -21,10 +21,13 @@ public class Food {
     @Column(length = 10000)
     private String description;
 
+    @Column(length = 10000)
+    private String allergyInfo;
+
     private double price;
 
     private String image; // duong dan anh hoac ten file
 
-    private String categoryId;
+    private int categoryId;
 
 }

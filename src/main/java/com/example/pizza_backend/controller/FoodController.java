@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.pizza_backend.repository.FoodRepository;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 import com.example.pizza_backend.model.Food;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +29,11 @@ public class FoodController {
     @PostMapping
     public Food createFood(@RequestBody Food food) {
         return foodRepository.save(food);
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public List<Food> getFoodsByCategory(@PathVariable int categoryId) {
+        return foodRepository.findByCategoryId(categoryId);
     }
 
 }
